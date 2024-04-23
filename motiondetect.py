@@ -8,10 +8,57 @@ class MotionDetector:
         self.debug = debug
         self.cool_down_time = cool_down_time
         self.sensitivity = sensitivity
+    def validate_camera_connected(self):
+        print("Checking if camera is connected...")
+        cameras = self.list_cameras()
+        if not cameras:
+            print("No cameras found")
+            return False
+        else:
+            print("Camera is connected")
+            return True
+    def list_cameras(self):
+        index = 0
+        arr = []
+        while True:
+            cap = cv2.VideoCapture(index)
+            try:
+                if cap.getBackendName()=="MSMF":
+                    arr.append(index)
+            except:
+                break
+            cap.release()
+            index += 1
+
+        return arr
+    def select_camera(self):
+        cameras = self.list_cameras()
+        if cameras:
+            for camera in cameras:
+                print(camera)
+        else:
+            print("No cameras found")
+            return
+        while True:
+            try:
+                selected_index = int(input("Select camera index: "))
+                print(f"Selected camera index: {selected_index}")
+            except ValueError:
+                print("Invalid input")
+                continue
+
+            if selected_index not in cameras:
+                print("Invalid camera index")
+                continue
+            else:
+                break
+        print("Setting video source to: ", selected_index)
+        self.video_source = selected_index
     def run(self):
+        self.select_camera()
         last_capture = time.time()
         while True:
-            
+
             ret, frame = self.cap.read()
             if not ret:
                 break

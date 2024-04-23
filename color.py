@@ -10,3 +10,4 @@ class Color:
 
 def colored_print(text, color):
     print(color + text + Color.RESET)
+    

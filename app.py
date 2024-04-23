@@ -36,7 +36,11 @@ def main():
           """)
     internet_checker = InternetChecker()
     internet_checker.check_internet()
+    print("Starting motion detector...")
     detector = MotionDetector(debug=True)
+    print("Checking for connected cameras...")
+    detector.validate_camera_connected()
+    print("Running motion detector...")
     detector.run()
 if __name__ == "__main__":
     main()
