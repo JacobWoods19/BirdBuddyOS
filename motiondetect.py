@@ -26,15 +26,15 @@ class MotionDetector:
         arr = []
         while True:
             cap = cv2.VideoCapture(index)
-            try:
-                if cap.getBackendName()=="MSMF":
-                    arr.append(index)
-            except:
+            if not cap.isOpened():
+                cap.release()
                 break
+            else:
+                arr.append(index)
             cap.release()
             index += 1
-
         return arr
+
     def select_camera(self):
         cameras = self.list_cameras()
         if cameras:
