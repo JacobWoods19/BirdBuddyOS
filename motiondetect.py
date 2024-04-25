@@ -1,13 +1,17 @@
 import cv2
 import numpy as np
 import time
+import requests
+
+from termcolor import colored
 class MotionDetector:
-    def __init__(self, video_source=0, cool_down_time= 10, sensitivity = 500, debug=False):
+    def __init__(self, video_source=0, cool_down_time= 10, sensitivity = 500, pushover = None,  debug=False):
         self.cap = cv2.VideoCapture(video_source)
         self.back_sub = cv2.createBackgroundSubtractorMOG2()
         self.debug = debug
         self.cool_down_time = cool_down_time
         self.sensitivity = sensitivity
+        self.pushover = pushover
     def validate_camera_connected(self):
         print("Checking if camera is connected...")
         cameras = self.list_cameras()
@@ -34,8 +38,11 @@ class MotionDetector:
     def select_camera(self):
         cameras = self.list_cameras()
         if cameras:
+            print("Select camera:")
+            print("----------------")
             for camera in cameras:
                 print(camera)
+            print("----------------")
         else:
             print("No cameras found")
             return
@@ -53,7 +60,10 @@ class MotionDetector:
             else:
                 break
         print("Setting video source to: ", selected_index)
+        print("Setup complete! Press 'esc' to exit")
         self.video_source = selected_index
+
+
     def run(self):
         self.select_camera()
         last_capture = time.time()
@@ -82,18 +92,32 @@ class MotionDetector:
 
             time_elapsed = time.time() - last_capture
             if motion_detected and time_elapsed > self.cool_down_time:
-                print("Capturing image...")
+                self.update_line("Motion Detected", color="green", end_with_newline=False)
+                if self.pushover:
+                    self.pushover.send_notification(title="BirdBuddy", message="Motion detected at your bird feeder")
                 last_capture = time.time()
                 cv2.imwrite("motion_detected.jpg", frame)
-                cv2.imwrite("foreground.jpg", fg_mask)
+            elif motion_detected:
+                self.update_line("On cool down", color="yellow", end_with_newline=False)
+            else:
+                self.update_line("No motion detected", color="red", end_with_newline=False)
+
             if self.debug:
                 cv2.imshow('Frame', frame)
-                cv2.imshow('Foreground', fg_mask)
 
             if cv2.waitKey(1) == 27:  
                 break
 
         self.cleanup()
+    def update_line(self, message,color, width=80, end_with_newline=True):
+            # Ensure the message fills the entire width or is truncated to fit it
+        padded_message = message.ljust(width)[:width]
+        # Print the message with a carriage return and flush the output
+        print(colored(padded_message, color), end='\r', flush=True)
+        
+        # Optionally end with a newline when the updates are complete
+        if end_with_newline:
+            print()  # Print the newline character at the end
 
     def cleanup(self):
         self.cap.release()
