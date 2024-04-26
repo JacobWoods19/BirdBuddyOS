@@ -21,17 +21,20 @@ class MotionDetector:
         else:
             print("Camera is connected")
             return True
-    def list_cameras(self):
+    def detect_cameras(self):
         index = 0
         arr = []
         while True:
-            cap = cv2.VideoCapture(index)
+            cap = cv2.VideoCapture(index, cv2.CAP_V4L2)  # Use CAP_V4L2 for direct V4L2 access
             if not cap.isOpened():
                 cap.release()
                 break
             else:
-                arr.append(index)
-            cap.release()
+                is_open, frame = cap.read()
+                if is_open:
+                    print(f"Webcam detected at index {index}")
+                    arr.append(index)
+                cap.release()
             index += 1
         return arr
 
