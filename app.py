@@ -1,9 +1,9 @@
 import sys
-from network import InternetChecker
+from network import NetworkManager
 from colored import fg, bg, attr
 from motiondetect import MotionDetector
 from pushover import PushoverHandler
-
+from pictureHandler import PictureHandler
 def colored_print(text, color, background='black', attributes=[]):
     color_text = fg(color) + bg(background)
     for attribute in attributes:
@@ -20,7 +20,6 @@ def prompt_yes_no(message):
         colored_print("Invalid input, please enter 'y' or 'n'.", 'red')
 
 def prompt_integer(message, range=None):
-
     while True:
         try:
             value = int(input(f"{message}: "))
@@ -76,16 +75,22 @@ _________ .__  .__                     __________.__           .___
 def main():
     print_banner()
     print("Turn Your Pi into a Smart Bird Feeder - Version 1.0\n")
-    internet_checker = InternetChecker()
-    internet_checker.check_internet()
+    network_handler = NetworkManager()
+    network_handler.check_internet()
     debug = prompt_yes_no("Enable debug mode? Debug mode will display what the camera sees")
     cool_down_time = prompt_integer("Enter cool down time (seconds)")
     sensitivity = prompt_integer("Enter sensitivity (0-1000, 500 recommended)", (0, 1000))
+    backup_enabled = prompt_yes_no("Enable cloud backup?")
+    user_id = None
+    bucket_name = None
+    if backup_enabled:
+        user_id = input("Enter user ID for clippy bird: ")
+        bucket_name = input("Enter bucket name for GCP: ")
     pushover = setup_pushover()
+    picture_handler = PictureHandler(bucket_name)
+    picture_handler.createPhotosFolder()
+    detector = MotionDetector(debug=debug, user_id=user_id,  cool_down_time=cool_down_time, pushover=pushover, sensitivity=sensitivity, picture_handler=picture_handler, network_handler=network_handler)
     
-    detector = MotionDetector(debug=debug, cool_down_time=cool_down_time, pushover=pushover, sensitivity=sensitivity)
-    if not detector.validate_camera_connected():
-        sys.exit("No camera connected, exiting.")
     
     detector.run()
 

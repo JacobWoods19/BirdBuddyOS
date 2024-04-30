@@ -19,7 +19,6 @@ class PushoverHandler:
             url_title (str, optional): A title for your supplementary URL, otherwise just the URL is shown.
         """
         if self.time_enabled:
-            ##Add time date to message
             message = message + " @ " + time.strftime("%Y-%m-%d %H:%M:%S")
         payload = {
             "token": self.api_token,
@@ -39,3 +38,4 @@ class PushoverHandler:
 
 
         return response.json()
+    

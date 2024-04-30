@@ -2,26 +2,62 @@ import cv2
 import numpy as np
 import time
 import requests
-
+from pushover import PushoverHandler
+from pictureHandler import PictureHandler
 from termcolor import colored
+import uuid 
+import logging
+import threading
+    # A class to handle motion detection from video sources, with options for debugging,
+    # cloud backup, and notifications.
+
+    # Attributes:
+    #     cap (cv2.VideoCapture): Video capture object for the specified video source.
+    #     back_sub (cv2.BackgroundSubtractorMOG2): Background subtractor object for motion detection.
+    #     debug (bool): Flag to enable debugging outputs.
+    #     is_cloud_backup_enabled (bool): Status of cloud backup functionality.
+    #     cool_down_time (int): Minimum time between motion detections to avoid false alarms.
+    #     sensitivity (int): Threshold for motion detection sensitivity.
+    #     pushover (PushoverHandler): Handler for sending notifications via Pushover.
+    #     picture_handler (PictureHandler): Handler for processing and saving pictures.
+    #     network_handler (NetworkHandler): Handler for network-related operations.
+    #     backup_enabled (bool): Flag to enable backup functionality.
+    #     user_id (str): User identifier for tracking or user-specific operations.
+
+    # Parameters:
+    #     picture_handler (PictureHandler): An instance of a handler for picture operations.
+    #     network_handler (NetworkHandler): An instance of a handler for network operations.
+    #     user_id (str): Identifier of the user.
+    #     backup_enabled (bool): Enables backup of captured images to cloud storage. Default is True.
+    #     video_source (int): Device index of the video source. Default is 0.
+    #     cool_down_time (int): Cool-down time between detections in seconds. Default is 10.
+    #     sensitivity (int): Sensitivity threshold for detecting motion. Default is 500.
+    #     pushover (PushoverHandler): Optional handler for Pushover notifications. Default is None.
+    #     debug (bool): Enables debug mode. Default is False.
 class MotionDetector:
-    def __init__(self, video_source=0, cool_down_time= 10, sensitivity = 500, pushover = None,  debug=False):
+
+    def __init__(self,picture_handler,network_handler,user_id, backup_enabled=True , video_source=0, cool_down_time= 10, sensitivity = 500, pushover = None,  debug=False):
         self.cap = cv2.VideoCapture(video_source)
         self.back_sub = cv2.createBackgroundSubtractorMOG2()
         self.debug = debug
+        self.is_cloud_backup_enabled = False
         self.cool_down_time = cool_down_time
         self.sensitivity = sensitivity
         self.pushover = pushover
-    def validate_camera_connected(self):
-        print("Checking if camera is connected...")
-        cameras = self.list_cameras()
-        if not cameras:
-            print("No cameras found")
-            return False
-        else:
-            print("Camera is connected")
-            return True
+        self.picture_handler = picture_handler
+        self.network_handler = network_handler
+        self.backup_enabled = backup_enabled
+        self.user_id = user_id
+
+        
     def detect_cameras(self):
+        """
+        Detects and lists available video capture devices.
+
+        Returns:
+            list: Indexes of available video capture devices.
+        """ 
+                
         index = 0
         arr = []
         while True:
@@ -38,38 +74,21 @@ class MotionDetector:
             index += 1
         return arr
 
-    def select_camera(self):
-        cameras = self.list_cameras()
-        if cameras:
-            print("Select camera:")
-            print("----------------")
-            for camera in cameras:
-                print(camera)
-            print("----------------")
-        else:
-            print("No cameras found")
-            return
-        while True:
-            try:
-                selected_index = int(input("Select camera index: "))
-                print(f"Selected camera index: {selected_index}")
-            except ValueError:
-                print("Invalid input")
-                continue
-
-            if selected_index not in cameras:
-                print("Invalid camera index")
-                continue
-            else:
-                break
-        print("Setting video source to: ", selected_index)
-        print("Setup complete! Press 'esc' to exit")
-        self.video_source = selected_index
 
 
     def run(self):
-        self.select_camera()
+        """
+        Runs the motion detection loop. This method handles the capturing and processing of video frames,
+        detects motion, and performs actions based on the motion detection results.
+        """
         last_capture = time.time()
+        # Configure logging to file only
+        logging.basicConfig(
+            filename='birdfeeder.log',  # Name of the log file
+            filemode='w',              # 'w' to overwrite the file or 'a' to append
+            level=logging.DEBUG,       # Logging level
+            format='%(asctime)s - %(levelname)s - %(message)s'  # Format of log messages
+        )
         while True:
 
             ret, frame = self.cap.read()
@@ -95,11 +114,22 @@ class MotionDetector:
 
             time_elapsed = time.time() - last_capture
             if motion_detected and time_elapsed > self.cool_down_time:
-                self.update_line("Motion Detected", color="green", end_with_newline=False)
+                # self.update_line("Motion Detected", color="green", end_with_newline=False)
+                logging.info("Motion detected at the bird feeder")
+
                 if self.pushover:
+                    logging.info("Sending notification to Pushover")
                     self.pushover.send_notification(title="BirdBuddy", message="Motion detected at your bird feeder")
                 last_capture = time.time()
-                cv2.imwrite("motion_detected.jpg", frame)
+                ##Where the photo will be saved
+                path = self.picture_handler.savePhotoPath()
+                cv2.imwrite(path, frame)
+                if self.backup_enabled:
+                    destination_blob_name = uuid.uuid4().hex + ".jpg"
+                    x = threading.Thread(target=self.upload_image, args=(path, destination_blob_name))
+                    x.start()
+                    
+
             elif motion_detected:
                 self.update_line("On cool down", color="yellow", end_with_newline=False)
             else:
@@ -110,10 +140,12 @@ class MotionDetector:
 
             if cv2.waitKey(1) == 27:  
                 break
-
         self.cleanup()
+    def upload_image(self, path, destination_blob_name):
+        public_url = self.picture_handler.uploadToGoogleCloudBucket(path=path, destination_blob_name=destination_blob_name)
+        self.network_handler.upload_image(user_id=self.user_id, file_location=public_url, image_name=destination_blob_name)
     def update_line(self, message,color, width=80, end_with_newline=True):
-            # Ensure the message fills the entire width or is truncated to fit it
+        # Ensure the message fills the entire width or is truncated to fit it
         padded_message = message.ljust(width)[:width]
         # Print the message with a carriage return and flush the output
         print(colored(padded_message, color), end='\r', flush=True)
