@@ -1,5 +1,5 @@
 # ClippyBird Hardware Guide
-
+[Updated Docs](https://sweltering-cook-968.notion.site/ClippyBird-Hardware-Guide-c3a98dc4b2554427aeb14f15eeefcf69?pvs=4)
 Turn your Raspberry Pi Into a Smart Bird Feeder
 
 ## Intro
