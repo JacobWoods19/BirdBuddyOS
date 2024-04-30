@@ -1,7 +1,7 @@
 # ClippyBird Hardware Guide
 
 Turn your Raspberry Pi Into a Smart Bird Feeder
-[Notion](https://sweltering-cook-968.notion.site/ClippyBird-Hardware-Guide-c3a98dc4b2554427aeb14f15eeefcf69?pvs=4)
+
 ## Intro
 
 ClippyBird transforms your Raspberry Pi into a high-tech bird feeder camera, offering a budget-friendly and engaging way to connect with nature. For just $150, this open-source software empowers you to build a smart bird feeder that not only captures stunning visuals but also employs machine learning to identify visiting bird species. With features such as real-time notifications and local storage options, ClippyBird enhances your bird-watching experience, allowing you to observe and learn about the feathered visitors right from your backyard. Whether you're a seasoned birder or a curious hobbyist, ClippyBird provides an accessible and interactive way to explore avian life through technology.
@@ -108,6 +108,17 @@ Allows cloud backup to google cloud image bucket.
 `sudo nano key.json`
 
 [Paste in Google Cloud Bucket Key]
+
+## 3a.) Setup Pushover
+
+Create a Pushover Account:
+Visit the Pushover website at [https://pushover.net/](https://pushover.net/).
+Sign up for an account by providing your email address and creating a password.
+Register Your Application:
+Once logged in, go to the dashboard and click on "Register an Application/API".
+Fill in the application details including the name, description, and type of your application.
+Agree to the terms of service and click the "Create Application" button.
+After registering, you will receive an API Token/Key. This is crucial for your application to interact with the Pushover API.
 
 ## 4.) Follow On Screen Setup Instructions
 
