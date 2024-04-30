@@ -1,5 +1,3 @@
-2024-04-30 12:55:05,345 - DEBUG - Starting new HTTPS connection (1): clippyserver.uc.r.appspot.com:443
-2024-04-30 12:55:09,256 - DEBUG - https://clippyserver.uc.r.appspot.com:443 "POST /api/insert/test HTTP/1.1" 500 323
-2024-04-30 12:55:09,257 - ERROR - Server error
-2024-04-30 12:55:16,069 - DEBUG - https://clippyserver.uc.r.appspot.com:443 "POST /api/insert/test HTTP/1.1" 422 43
-2024-04-30 12:55:16,070 - ERROR - No bird found
+2024-04-30 14:11:23,925 - DEBUG - Starting new HTTPS connection (1): clippyserver.uc.r.appspot.com:443
+2024-04-30 14:11:26,401 - DEBUG - https://clippyserver.uc.r.appspot.com:443 "POST /api/insert/test HTTP/1.1" 422 43
+2024-04-30 14:11:26,402 - ERROR - No bird found
