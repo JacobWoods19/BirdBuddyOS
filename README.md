@@ -1,7 +1,7 @@
 # ClippyBird Hardware Guide
 
 Turn your Raspberry Pi Into a Smart Bird Feeder
-
+[Notion](https://sweltering-cook-968.notion.site/ClippyBird-Hardware-Guide-c3a98dc4b2554427aeb14f15eeefcf69?pvs=4)
 ## Intro
 
 ClippyBird transforms your Raspberry Pi into a high-tech bird feeder camera, offering a budget-friendly and engaging way to connect with nature. For just $150, this open-source software empowers you to build a smart bird feeder that not only captures stunning visuals but also employs machine learning to identify visiting bird species. With features such as real-time notifications and local storage options, ClippyBird enhances your bird-watching experience, allowing you to observe and learn about the feathered visitors right from your backyard. Whether you're a seasoned birder or a curious hobbyist, ClippyBird provides an accessible and interactive way to explore avian life through technology.
